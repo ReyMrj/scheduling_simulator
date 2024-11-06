@@ -45,33 +45,58 @@ void gather_input(Queue *queues, int num_queues) {
         printf("Enter PID, Priority, Burst Time (or -1 to exit): ");
     }
 }
+
+Process find_shortest_job(Queue *queue) {
+    int min_index = 0;
+    for (int i = 1; i < queue->size; i++) {
+        if (queue->processes[i].remaining_time < queue->processes[min_index].remaining_time) {
+            min_index = i;
+        }
+    }
+    // Extract the process with the shortest time
+    Process shortest_process = queue->processes[min_index];
+
+    // Remove this process from the queue and adjust the rest of the queue
+    for (int i = min_index; i < queue->size - 1; i++) {
+        queue->processes[i] = queue->processes[i + 1];
+    }
+    queue->size--;
+
+    return shortest_process;
+}
+
 void run_multilevel_queue_scheduler(Queue queues[], int num_queues) {
     while (1) {
         int processes_left = 0;
+
         for (int i = 0; i < num_queues; i++) {
             if (queues[i].size > 0) {
                 processes_left = 1;
-                Process current = dequeue(&queues[i]);
-                
-                // Simulate process execution based on time slice
-                int execute_time = (current.remaining_time < queues[i].time_slice)
-                                   ? current.remaining_time : queues[i].time_slice;
-                
-                current.remaining_time -= execute_time;
-                
-                printf("Running Process %d from Queue %d for %d units\n",
-                        current.pid, i, execute_time);
-                
-                if (current.remaining_time > 0) {
-                    // Re-enqueue in the same or lower-priority queue as needed
-                    if (i < num_queues - 1) {
-                        enqueue(&queues[i + 1], current);
-                    } else {
-                        enqueue(&queues[i], current);
+
+                if (i == 0) { // High priority queue, Round Robin
+                    Process p = dequeue(&queues[i]);
+                    int exec_time = (p.remaining_time < queues[i].time_slice) ? p.remaining_time : queues[i].time_slice;
+                    p.remaining_time -= exec_time;
+
+                    if (p.remaining_time > 0) {
+                        enqueue(&queues[i], p);
+                    }
+                } else if (i == 1) { // Mid priority queue, Shortest Job First
+                    Process p = find_shortest_job(&queues[i]);
+                    p.remaining_time--;
+
+                    if (p.remaining_time > 0) {
+                        enqueue(&queues[i], p);
+                    }
+                } else if (i == 2) { // Low priority queue, First-Come First-Served
+                    Process p = dequeue(&queues[i]);
+                    while (p.remaining_time > 0) {
+                        p.remaining_time--;
                     }
                 }
             }
         }
+
         if (!processes_left) break;
     }
 }

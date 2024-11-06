@@ -30,5 +30,6 @@ Process dequeue(Queue *queue);
 void destroy_queues(Queue queues[], int num_queues);
 void run_multilevel_queue_scheduler(Queue queues[], int num_queues);
 void gather_input(Queue *queues, int num_queues);
+Process find_shortest_job(Queue *queue);
 
 #endif // SCHEDULER_H
