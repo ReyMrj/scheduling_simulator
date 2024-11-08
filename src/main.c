@@ -8,12 +8,21 @@ int main() {
     // Initialize queues
     initialize_queues(queues, num_queues);
 
-    // Gather user input
-    gather_input(queues, num_queues);
+    // Ask the user to select a scheduling algorithm
+    int choice;
+    printf("Select a scheduling algorithm:\n");
+    printf("1. Multilevel Queue Scheduling\n");
+    printf("2. First-Come First-Served (FCFS)\n");
+    printf("3. Shortest Job First (SJF)\n");
+    printf("4. Round Robin\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
 
-    // Run the scheduler
-    printf("Starting the Multilevel Queue Scheduling Simulation...\n");
-    run_multilevel_queue_scheduler(queues, num_queues);
+    // Gather process input based on the chosen scheduling technique
+    gather_input(queues, num_queues, choice);
+
+    // Run the selected scheduling algorithm
+    run_selected_scheduling(choice, queues, num_queues);
 
     // Clean up
     destroy_queues(queues, num_queues);
