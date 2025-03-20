@@ -2,14 +2,12 @@
 #include <stdlib.h>
 #include "scheduler.h"
 
-// Initialize queues
 void initialize_queues(Queue *queues, int num_queues) {
     for (int i = 0; i < num_queues; i++) {
         queues[i].front = queues[i].rear = NULL;
     }
 }
 
-// Destroy queues and free memory
 void destroy_queues(Queue *queues, int num_queues) {
     for (int i = 0; i < num_queues; i++) {
         ProcessNode *current = queues[i].front;
@@ -21,7 +19,6 @@ void destroy_queues(Queue *queues, int num_queues) {
     }
 }
 
-// Enqueue a process into the queue
 void enqueue(Queue *queue, Process process) {
     ProcessNode *new_node = (ProcessNode *)malloc(sizeof(ProcessNode));
     new_node->process = process;
@@ -35,10 +32,9 @@ void enqueue(Queue *queue, Process process) {
     }
 }
 
-// Dequeue a process from the queue
 Process dequeue(Queue *queue) {
     if (queue->front == NULL) {
-        Process empty = {-1, -1, -1, -1, -1};  // Return an empty process if queue is empty
+        Process empty = {-1, -1, -1, -1, -1};  
         return empty;
     }
     ProcessNode *temp = queue->front;
@@ -51,12 +47,10 @@ Process dequeue(Queue *queue) {
     return process;
 }
 
-// Gather input based on the selected scheduling technique
 void gather_input(Queue *queues, int num_queues, int choice) {
     int pid, priority, burst_time;
 
     if (choice == 4 || choice == 2 || choice == 3) { 
-        // For FCFS, SJF, and Round Robin, only PID and Burst Time are needed
         printf("Enter PID and Burst Time (or -1 to exit): \n");
 
         while (1) {
@@ -69,16 +63,15 @@ void gather_input(Queue *queues, int num_queues, int choice) {
             printf("Enter Burst Time: ");
             scanf("%d", &burst_time);
 
-            // Based on the choice of scheduling technique, handle input accordingly
-            if (choice == 4) { // Round Robin - No priority needed
+            if (choice == 4) { 
                 enqueue(&queues[0], (Process){pid, 0, burst_time, burst_time, 0});
-            } else if (choice == 2) { // FCFS - No priority needed
+            } else if (choice == 2) { 
                 enqueue(&queues[0], (Process){pid, 0, burst_time, burst_time, 0});
-            } else if (choice == 3) { // SJF - No priority needed
+            } else if (choice == 3) { 
                 enqueue(&queues[0], (Process){pid, 0, burst_time, burst_time, 0});
             }
         }
-    } else if (choice == 1) { // Multilevel Queue Scheduling - Need Priority and Burst Time
+    } else if (choice == 1) { 
         printf("Enter PID, Priority (0-%d), and Burst Time (or -1 to exit): \n", num_queues - 1);
         
         while (1) {
@@ -98,23 +91,20 @@ void gather_input(Queue *queues, int num_queues, int choice) {
             printf("Enter Burst Time: ");
             scanf("%d", &burst_time);
 
-            // Enqueue process to the appropriate queue based on priority
             enqueue(&queues[priority], (Process){pid, priority, burst_time, burst_time, 0});
         }
     }
 }
 
-// Run the First-Come First-Served scheduling algorithm
-// Run the First-Come First-Served scheduling algorithm
 void run_fcfs(Queue queues[], int num_queues) {
     for (int i = 0; i < num_queues; i++) {
-        if (queues[i].front != NULL) {  // Check if the queue is not empty
+        if (queues[i].front != NULL) { 
             printf("Processing queue %d (FCFS)\n", i);
             while (queues[i].front != NULL) {
                 Process process = dequeue(&queues[i]);
                 printf("Dequeued process %d (priority %d, remaining time %d)\n", process.pid, process.priority, process.remaining_time);
                 printf("Running process %d for %d units\n", process.pid, process.burst_time);
-                process.remaining_time = 0;  // Simulating process completion
+                process.remaining_time = 0;  
                 printf("Process %d completed.\n", process.pid);
             }
         }
@@ -122,15 +112,12 @@ void run_fcfs(Queue queues[], int num_queues) {
 }
 
 
-// Run the Shortest Job First (SJF) scheduling algorithm
 void run_sjf(Queue queues[], int num_queues) {
     printf("Running Shortest Job First (SJF)...\n");
 
-    // Collect all processes from the queues into a list
     Process processes[MAX_PROCESSES];
     int num_processes = 0;
 
-    // Collect all processes in a single array
     for (int i = 0; i < num_queues; i++) {
         while (queues[i].front != NULL) {
             Process process = dequeue(&queues[i]);
@@ -143,7 +130,6 @@ void run_sjf(Queue queues[], int num_queues) {
         }
     }
 
-    // Sort the processes by burst time (shortest first)
     for (int i = 0; i < num_processes - 1; i++) {
         for (int j = i + 1; j < num_processes; j++) {
             if (processes[i].burst_time > processes[j].burst_time) {
@@ -154,11 +140,9 @@ void run_sjf(Queue queues[], int num_queues) {
         }
     }
 
-    // Execute the processes based on SJF order
     for (int i = 0; i < num_processes; i++) {
         Process process = processes[i];
         printf("Running process %d (priority %d) for %d units\n", process.pid, process.priority, process.burst_time);
-        // Simulate process execution
         process.remaining_time = 0;
         printf("Process %d completed.\n", process.pid);
     }
@@ -167,7 +151,6 @@ void run_sjf(Queue queues[], int num_queues) {
 
 
 
-// Run the Round Robin scheduling algorithm
 void run_round_robin(Queue queues[], int num_queues, int time_quantum) {
     printf("Running Round Robin...\n");
 
@@ -179,7 +162,7 @@ void run_round_robin(Queue queues[], int num_queues, int time_quantum) {
             process.remaining_time -= time_slice;
 
             if (process.remaining_time > 0) {
-                enqueue(&queues[i], process); // Re-enqueue if process is not finished
+                enqueue(&queues[i], process); 
             } else {
                 printf("Process %d completed.\n", process.pid);
             }
@@ -187,7 +170,6 @@ void run_round_robin(Queue queues[], int num_queues, int time_quantum) {
     }
 }
 
-// Run the Multilevel Queue Scheduling algorithm
 void run_multilevel_queue_scheduler(Queue queues[], int num_queues) {
     for (int i = 0; i < num_queues; i++) {
         printf("Running queue %d (Multilevel Queue Scheduling)\n", i);
@@ -201,11 +183,10 @@ void run_multilevel_queue_scheduler(Queue queues[], int num_queues) {
     }
 }
 
-// Run the selected scheduling algorithm based on user choice
 void run_selected_scheduling(int choice, Queue queues[], int num_queues) {
     int time_quantum;
 
-    if (choice == 4) {  // Round Robin requires time quantum input
+    if (choice == 4) {  
         printf("Enter Time Quantum for Round Robin: ");
         scanf("%d", &time_quantum);
     }
@@ -220,9 +201,8 @@ void run_selected_scheduling(int choice, Queue queues[], int num_queues) {
             run_fcfs(queues, num_queues);
             break;
         case 3:
-            // Remove this redundant line
-            // printf("Running Shortest Job First (SJF)...\n"); 
-            run_sjf(queues, num_queues);  // Already prints the message inside run_sjf
+           
+            run_sjf(queues, num_queues);  
             break;
         case 4:
             run_round_robin(queues, num_queues, time_quantum);
